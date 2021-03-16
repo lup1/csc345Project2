@@ -1,3 +1,4 @@
 Discussion Log
 
 3/15 Poean: I'm going to create the input.txt file
+3/15 Poean: Created a barebone main.c file that is supposed to open a file from the command line
