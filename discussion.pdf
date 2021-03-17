@@ -2,4 +2,4 @@ Discussion Log
 
 3/15 Poean: I'm going to create the input.txt file
 3/15 Poean: Created a barebone main.c file that is supposed to open a file from the command line
-3/16 Poean: main.c file now opens file from command line and outputs the values that it scans from the command line
+3/16 Poean: main.c file now opens file from command line and puts its values into one big array 
