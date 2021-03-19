@@ -7,25 +7,32 @@
 #include <math.h>
 #define EXPECTED_TOTAL 45
 
-//extern FILE *input_file;
-const int MAX = 4;
-int horizontal_results; // Results for rows
-int vertical_results;   // Results for columns
-int block_results = 1;      // Results for 3x3
+// //extern FILE *input_file;
+// int horizontal_results; // Results for rows
+// int vertical_results;   // Results for columns
+// int block_results = 1;      // Results for 3x3
 int results = 1;
-int entries[9][9] = {0}; /* stores inputs */    
+
+typedef struct { 
+int row;
+int col;
+int (*entries) [9];
+}parameters;
+
+//int entries[9][9] = {0}; /* stores inputs */    
 
 //Function for columns
-void* vertical(void* nums) {            // entries[] passed in
-    int passed_array[9][9]; 
-    passed_array[9][9] = atol(nums);
+void* vertical(void* param) {            // entries[] passed in
+    //int passed_array[9][9]; 
+    //passed_array[9][9] = atol(nums);
+    parameters *data = (parameters*) param;
     int total;
     printf("vertical\n");
 
     for(int i = 0; i < 9; i++) {        // Checks every column for repeating values
         total = 0;
         for(int j = 0; j < 9; j++) {    
-            total += passed_array[j][i];     // makes sure the values are in matching columns
+            total += (data -> entries[j][i]);     // makes sure the values are in matching columns
         }
         if (total!=EXPECTED_TOTAL) {
             //vertical_results = 1;
@@ -41,17 +48,16 @@ void* vertical(void* nums) {            // entries[] passed in
 }
 
 //function for rows
-void* horizontal(void* nums) {
-    int passed_array[9][9];
-    passed_array[9][9] = atol(nums);
-    //parameters *data = (parameters*) param;
+void* horizontal(void* param) {
+    // int passed_array[9][9];
+    // passed_array[9][9] = (int*)param;
+    parameters *data = (parameters*) param;
     int total;
-    int next_row;
     printf("horizontal\n");
     for(int i = 0; i < 9; i++) {
         total = 0;
         for(int j = 0; j < 9; j++) {
-            total += (passed_array[i][j]);
+            total += (data -> entries[i][j]);
         }
         if (total!=EXPECTED_TOTAL) {
             //horizontal_results = 1;
@@ -66,8 +72,12 @@ void* horizontal(void* nums) {
 }
 
 //function for 3x3 for 3 threads
-void* nine_by_nine(void* nums) {
-    int passed_matrix[9][9];
+void* nine_by_nine(void* param) {
+    //int passed_matrix[9][9];
+
+    parameters *data = (parameters*) param;
+    int row = data -> row;
+    int col = data -> colums;
     int total;
     printf("nine by nine\n");
     
@@ -95,20 +105,19 @@ void* nine_by_nine(void* nums) {
 }
 
 //function for 3x3 for 11 threads
-void* three_by_three(void* nums) {
-    int *passed_matrix[3][3];
-    passed_matrix[3][3] = (int *) nums;
-    //int row = 3;
-    //int column = 3;
-    int *total;
+void* three_by_three(void* param) {
+    //int *passed_matrix[3][3];
+    //passed_matrix[3][3] = (int *) nums;
+    parameters *data = (parameters*) param;
+
+    int row = data -> row;
+    int col = data -> col;
+    int total = 0;
+
     printf("three by three\n");
-    for (int i = 0; i < 3; i++) {
-        total = 0;
-        for (int j = 0; j < 3; j++){
-            printf("%ls\n", passed_matrix[i][j]);
-            *total +=*passed_matrix[i][j];
-            printf("hello\n");
-            printf("%ls\n",total);
+    for (int i = col; i < col + 3; i++) {
+        for (int j = row; j < row + 3; j++){
+            total += data -> entries[i][j];
         }
     }
     printf("threebythree something\n");
