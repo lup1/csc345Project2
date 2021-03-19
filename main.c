@@ -8,14 +8,24 @@
 //extern FILE *input_file;
 const int MAX = 4;
 
+//function for finding repeating values
+int findValue(int* array, int value) {
+
+}
 
 //Function for vertical
-void* vertical(void* nums) {
-    int cont_values[9] = {0};
+void* vertical(void* nums) {            // entries[] passed in
+    int passed_array[81]; 
+    passed_array[81] = atol(nums);
+    int cont_values[81] = {0};
+    int vert_values[9] = {0};
+    
 
-    for(int i=0; i < 9; i++) {
-        for(int j = 0; i < 9; j++) {
-            
+    for(int i = 0; i < 9; i++) {        // Checks every column for repeating values
+        for(int j = 0; j < 9; j++) {    
+            if (passed_array[i+(j*9)]==0) {     // Compares one int to all the other ints in the column
+                printf("help");
+            }
         }
     }
 
@@ -34,6 +44,8 @@ int main(int argc, char *argv[]) {
     int entries[81] = {0};   /* stores inputs to be arranged into rows, columns, 
                             and 3x3 sections */    
     int iterate = 0;
+
+    pid_t id;   /***PID FOR THREADS ***/
 
     int option = atol(argv[1]);
     printf("Option %d\n", option);
@@ -63,6 +75,7 @@ int main(int argc, char *argv[]) {
          }
     }
     printf("\n");
+    vertical(&entries);
     //printf("iterate: %d\n", iterate);
     //printf("Last term: %d\n",entries[iterate-1]);
 
