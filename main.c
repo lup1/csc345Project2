@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include "string.h"
 #include <pthread.h>
+#include <time.h>
 
 //extern FILE *input_file;
 const int MAX = 4;
@@ -23,8 +24,8 @@ void* vertical(void* nums) {            // entries[] passed in
 
     for(int i = 0; i < 9; i++) {        // Checks every column for repeating values
         for(int j = 0; j < 9; j++) {    
-            if (passed_array[i+(j*9)]==0) {     // Compares one int to all the other ints in the column
-                printf("help");
+            if (passed_array[i+(j*9)]==0) {     // makes sure the values are in matching columns
+                
             }
         }
     }
@@ -36,8 +37,13 @@ void* vertical(void* nums) {            // entries[] passed in
 
 //function for 3x3
 
-int main(int argc, char *argv[]) {
+int main(int argc, char** argv[]) {
     FILE *input_file;
+
+    int results = 1;    // variable for whether it works or not
+    clock_t t;
+    t = clock();
+    double total_time;
 
     int val;      /* Variable to contain value currently scanned */
     int i;  /* Iterating for printing out the sequence */
@@ -47,7 +53,7 @@ int main(int argc, char *argv[]) {
 
     pid_t id;   /***PID FOR THREADS ***/
 
-    int option = atol(argv[1]);
+    int option = atol(argv[1]); /* Takes in user input for options */
     printf("Option %d\n", option);
 
     printf("BOARD STATE IN input.txt: \n");
@@ -80,6 +86,18 @@ int main(int argc, char *argv[]) {
     //printf("Last term: %d\n",entries[iterate-1]);
 
     /***********Threads for calculating sudoku********************/
+
+
+
+    /* gets final clock timer */
+    t = clock() - t;
+    total_time = ((double)t/CLOCKS_PER_SEC);
+
+    if(results==0) {
+        printf("SOLUTION: NO (%f seconds\n", total_time);
+    } else{
+        printf("SOLUTION: YES (%f secons)\n", total_time);
+    }
 
 return 0;
 }
