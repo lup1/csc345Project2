@@ -3,57 +3,136 @@
 #include <pthread.h>
 #include <unistd.h>
 #include "string.h"
-#include <pthread.h>
 #include <time.h>
+#include <math.h>
+#define EXPECTED_TOTAL 45
 
 //extern FILE *input_file;
 const int MAX = 4;
+int horizontal_results; // Results for rows
+int vertical_results;   // Results for columns
+int block_results = 1;      // Results for 3x3
+int results = 1;
+int entries[9][9] = {0}; /* stores inputs */    
 
-//function for finding repeating values
-int findValue(int* array, int value) {
-
-}
-
-//Function for vertical
+//Function for columns
 void* vertical(void* nums) {            // entries[] passed in
-    int passed_array[81]; 
-    passed_array[81] = atol(nums);
-    int cont_values[81] = {0};
-    int vert_values[9] = {0};
-    
+    int passed_array[9][9]; 
+    passed_array[9][9] = atol(nums);
+    int total;
+    printf("vertical\n");
 
     for(int i = 0; i < 9; i++) {        // Checks every column for repeating values
+        total = 0;
         for(int j = 0; j < 9; j++) {    
-            if (passed_array[i+(j*9)]==0) {     // makes sure the values are in matching columns
-                
-            }
+            total += passed_array[j][i];     // makes sure the values are in matching columns
         }
+        if (total!=EXPECTED_TOTAL) {
+            //vertical_results = 1;
+            results = 0;
+        } 
+        // else {
+        //     vertical_results = 0;
+        //     //results = 0;
+        // }
     }
+    pthread_exit(NULL);
 
 }
 
+//function for rows
+void* horizontal(void* nums) {
+    int passed_array[9][9];
+    passed_array[9][9] = atol(nums);
+    //parameters *data = (parameters*) param;
+    int total;
+    int next_row;
+    printf("horizontal\n");
+    for(int i = 0; i < 9; i++) {
+        total = 0;
+        for(int j = 0; j < 9; j++) {
+            total += (passed_array[i][j]);
+        }
+        if (total!=EXPECTED_TOTAL) {
+            //horizontal_results = 1;
+            results = 0;
+        }
+        // } else {
+        //     horizontal_results = 0;
+            
+        // }
+    }
+    pthread_exit(NULL);
+}
 
-//function for horizontal
+//function for 3x3 for 3 threads
+void* nine_by_nine(void* nums) {
+    int passed_matrix[9][9];
+    int total;
+    printf("nine by nine\n");
+    
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+            if ((i % 3 == 0) && (j % 3== 0)) {
+                total = 0;
+                for (int k = i; k < 3+i; k++) {
+                    for (int p = j; p < 3+j; p++) {
+                        total +=passed_matrix[k][p];
+                    }
+                }
+            }
+            if (total != EXPECTED_TOTAL) {
+                //block_results = 1;
+                results = 0;
+            } 
+            // else {
+            //     block_results = 0;
+            // }
+        }
+    }
+    printf("exiting nine by nine\n");
+    pthread_exit(NULL);
+}
 
-//function for 3x3
+//function for 3x3 for 11 threads
+void* three_by_three(void* nums) {
+    int *passed_matrix[3][3];
+    passed_matrix[3][3] = (int *) nums;
+    //int row = 3;
+    //int column = 3;
+    int *total;
+    printf("three by three\n");
+    for (int i = 0; i < 3; i++) {
+        total = 0;
+        for (int j = 0; j < 3; j++){
+            printf("%ls\n", passed_matrix[i][j]);
+            *total +=*passed_matrix[i][j];
+            printf("hello\n");
+            printf("%ls\n",total);
+        }
+    }
+    printf("threebythree something\n");
+    if (total != (int *)EXPECTED_TOTAL) {
+        //block_results = 1;
+        results = 0;
+    } 
+    printf("%ls\n",total);
+    
+    pthread_exit(NULL); // <<THIS IS THE PROBLEM CHILD
+}
 
-int main(int argc, char** argv[]) {
+int main(int argc, char* argv[]) {
+    
     FILE *input_file;
-
+    int option = atol(argv[1]); /* Takes in user input for options */
     int results = 1;    // variable for whether it works or not
-    clock_t t;
-    t = clock();
-    double total_time;
-
     int val;      /* Variable to contain value currently scanned */
     int i;  /* Iterating for printing out the sequence */
-    int entries[81] = {0};   /* stores inputs to be arranged into rows, columns, 
-                            and 3x3 sections */    
     int iterate = 0;
 
-    pid_t id;   /***PID FOR THREADS ***/
+    //pid_t id;   /***PID FOR THREADS ***/
+    int total_threads;
 
-    int option = atol(argv[1]); /* Takes in user input for options */
     printf("Option %d\n", option);
 
     printf("BOARD STATE IN input.txt: \n");
@@ -63,41 +142,95 @@ int main(int argc, char** argv[]) {
         printf("Couldnt open file\n");
         return 1;
     }    
+    /* Scanning input */
+    for (int i = 0; i < 9; i++) {
+        for (int j=0; j<9; j++) {
+            fscanf(input_file,"%d",&entries[i][j]);
+                
+        }
+    }
 
-    while(fscanf(input_file, "%d", &val) == 1) {    
-        entries[iterate] = val; /* array will store all values from the input file,
-                                * then the program will split the inputs up into 
-                                * either rows, columns, or 3x3 sections */
-        iterate++;
-    } 
-
-    //printf(" %d\n", entries[80]);
     
-    for (int i = 0; i < iterate; i++) {
-        printf("%d ",entries[i]);
-
-         if (i % 9 == 8) {
-             printf("\n");
-         }
+    /* Printing out the board */
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+            printf("%d ",entries[i][j]);
+        }
+        printf("\n");
     }
     printf("\n");
-    vertical(&entries);
+    
+    /* Starts clock */
+    double total_time;
+    printf("hey\n");
+    clock_t t;
+    printf("woo\n");
+    t = clock();
+    
+    printf("clock started");
+
+    if (option == 1){
+            total_threads = 11;
+    } else if(option == 2) {
+        total_threads = 3;
+    } else {
+        printf("ERROR: OPTION NOT ACCEPTED\n");
+    }
+    printf("option selected");
+    pthread_t thread[total_threads];    // Determined by option
+    if (option == 1) {
+        int curr_thread = 0;
+        for(int i = 0; i < 9; i++) {
+            for(int j = 0; j < 9; j++) {
+                if((i % 3 == 0) && (j % 3 == 0)) {
+                    pthread_create(&thread[curr_thread], NULL, three_by_three, (void *)entries);
+                    curr_thread++;
+                }
+                if((i==0) && (j==0)) {
+                    pthread_create(&thread[curr_thread],NULL,vertical, entries);
+                    curr_thread++;
+                    pthread_create(&thread[curr_thread],NULL,horizontal, entries);
+                    curr_thread++;
+                }                
+            }
+        }
+    } else if (total_threads == 3) {
+        printf("nine by nine\n");
+        pthread_create(&thread[0], NULL, nine_by_nine(entries),entries);
+        printf("horizontal\n");
+        pthread_create(&thread[1], NULL, horizontal(entries),entries);
+        printf("vertical\n");
+        pthread_create(&thread[2],NULL, vertical(entries),entries);
+        }
+
     //printf("iterate: %d\n", iterate);
     //printf("Last term: %d\n",entries[iterate-1]);
 
     /***********Threads for calculating sudoku********************/
 
+    
+    for(int i = 0; i < total_threads; i++) {
+        printf("o.O");
+        pthread_join(thread[i], NULL);
+    }
+    
 
-
+    //printf("Stop clock?\n");
     /* gets final clock timer */
     t = clock() - t;
     total_time = ((double)t/CLOCKS_PER_SEC);
 
-    if(results==0) {
-        printf("SOLUTION: NO (%f seconds\n", total_time);
-    } else{
-        printf("SOLUTION: YES (%f secons)\n", total_time);
+    if(results == 0) {
+        printf("SOLUTION NO (%f seconds)\n", total_time);
+    } else {
+        printf("SOLUTION: YES (%F seconds)\n", total_time);
     }
+    
+    // if(horizontal_results && vertical_results && block_results) {
+    //     printf("SOLUTION: YES (%f seconds\n", total_time);
+    // } else{
+    //     printf("SOLUTION: NO (%f seconds)\n", total_time);
+    // }
 
 return 0;
 }
