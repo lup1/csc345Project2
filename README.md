@@ -1,3 +1,3 @@
 # csc345Project2
 
-Unfinished project that solves Sudoku puzzle
+Project that solves Sudoku puzzle
