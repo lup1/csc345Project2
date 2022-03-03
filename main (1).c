@@ -3,16 +3,13 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <semaphore.h>//
-#include <errno.h>//
 #include <string.h>
 
 #define ROW_LENGTH 9
 #define COL_LENGTH 9
 #define ROW_COL_TOTAL 45
 
-pthread_mutex_t lock;//FIGURE THIS STUFF OUT
-//sem_t sem;
+
 
 /*tracks if any rows, columns, or squares fail to meet criteria*/
 int correct = 1;
@@ -31,14 +28,12 @@ typedef struct{
 
 void* vertical(void* param){
 	
-	/*lock critical section*/
-	pthread_mutex_lock(&lock);
+	/*create parameter pointer to void data pointer*/
 	parameters *p = (parameters*) param;
+	
+	/*instantiate row and column start values*/
 	int row = p -> row;
 	int col = p -> col;
-	/*unlock critical section*/
-	pthread_mutex_unlock(&lock);
-	
 	int sum = 0;
 	
 	for(int i = 0; i < times_to_run; i++){
@@ -59,14 +54,13 @@ void* vertical(void* param){
 }
 void* horizontal(void* param){
 	
-	/*lock critical section*/
-	//pthread_mutex_lock(&lock);
-	//don't need lock in veritcal & horizontal bc same data & time before 3x3
+	/*create parameter pointer to void data pointer*/
 	parameters *p = (parameters*) param;
+	
+	/*instantiate row and column start values*/
 	int row = p -> row;
 	int col = p -> col;
-	/*unlock critical section*/
-	//pthread_mutex_unlock(&lock);
+
 	
 	int sum = 0;
 
@@ -87,24 +81,21 @@ void* horizontal(void* param){
 	pthread_exit(NULL);
 }
 void* _3x3(void* param){
-//CHANGE BODY
 	
-	/*lock critical section*/
-	pthread_mutex_lock(&lock);
+	/*create parameter pointer to void data pointer*/
 	parameters *p = (parameters*) param;
-	int row = p -> row;//row1
+	
+	/*instantiate grid row and column start values*/
+	int row = p -> row;
 	int col = p -> col;
-	
-	/*unlock critical section*/
-	pthread_mutex_unlock(&lock);
-	
-	//if(sem_post(&sem) != 0)/*signal*/
-	//	printf("%s\n", strerror(errno));
-		
+
+	/*sum = 0*/		
 	int sum = 0;
 	
+	//TEST CODE prints what 3x3 grid we are working with
 	printf("3x3:\nr: %d\nc: %d\n",row,col);//TEST CODE
 	
+	/*sums the entries to test if 3x3 grid is valid*/
 	for(int r = row; r < row + 3; r++){
 		for(int c = col; c < col + 3; c++){
 			sum += entries[r][c];
@@ -155,12 +146,6 @@ int main(int argc, char* argv[]){
 	/*build parameter struct*/
 	parameters *data = (parameters *) malloc(sizeof(parameters));
 	
-	/*initialize lock*/
-	pthread_mutex_init(&lock, NULL);
-	
-	//if(sem_init(&sem, 0, 1) == -1)/*initialize semaphore*/
-		printf("%s\n", strerror(errno));
-	
 	/*option 1*/
 	if(option == 1){
 		
@@ -184,32 +169,31 @@ int main(int argc, char* argv[]){
 		
 		/*check 3x3*/
 		pthread_t _3x3Thread[9];
+		
+		/*build parameter struct for 9 threads*/
+		/*need to allocate a pointer to 9 pointers*/
+		parameters **data3x3 = malloc(9*sizeof(parameters*));
+
+		/*current is which thread & data3x3 is currently being used*/
 		int current = 0;
 		for(int r = 0; r < 9; r++){
 			for(int c = 0; c < 9; c++){
+				/*if statement finds the start of each 3x3 grid*/
 				if(r % 3 == 0 && c % 3 == 0){
 					//printf("main:\nr: %d\nc: %d\n",r,c);//TEST CODE
-					/*set data*/
-					data -> row = r;
-					data -> col = c;
+					
+					/*allocate each struct pointer that is pointed to by ** */
+					data3x3[current] = (parameters *) malloc(sizeof(parameters));
+					
+					/*set data3x3 struct for each thread that searches a 3x3*/
+					data3x3[current] -> row = r;
+					data3x3[current] -> col = c;
 					
 					/*create a thread with data*/
-					pthread_create(&_3x3Thread[current], NULL, _3x3, data);
+				pthread_create(&_3x3Thread[current], NULL, _3x3, data3x3[current]);
 					
-					//if(sem_wait(&sem) != 0)/*wait*/
-					//	printf("%s\n", strerror(errno));
-					
-					
-					current += 1;
-
-					
-					/*controls timing for synchronization*/
-					sleep(1);//0.5
-					
-					
-					
-					
-					
+					/*increment current*/
+					current += 1;	
 					
 				}
 			}
@@ -222,10 +206,12 @@ int main(int argc, char* argv[]){
 			pthread_join(_3x3Thread[i], NULL);
 		}
 		
+		/*free dynamically allocated data struct*/
+		free(data3x3); 
+		
 	}
-	/*destroy lock*/
-	pthread_mutex_destroy(&lock);
-	//if(sem_destroy(&sem) != 0)/*destroy*/
-	//	printf("%s\n", strerror(errno));
+	/*free dynamically allocated data struct*/
+	free(data);
+
 	return 0;
 }
